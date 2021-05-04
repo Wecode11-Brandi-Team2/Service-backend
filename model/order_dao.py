@@ -1,18 +1,5 @@
 class OrderDao:
     def insert_orders(self, order_info, user_id, session):
-        """신규 order insert 로직
-                    
-        args:
-            session    : connection 형성된 session 객체
-            user_id    : 데코레이터 g객체 user_id
-            order_info : order, order_item 정보
-        
-        Authors:
-            kcs15987@gmail.com 권창식
-        
-        History:
-            2020-10-05 (권창식) : 초기 생성
-        """
         order_query = """INSERT INTO orders (
                         user_id,
                         total_shipping_fee,
@@ -45,21 +32,23 @@ class OrderDao:
                         now(),
                         0
                 )"""
-        
-        session.execute(order_query, 
-        {
-        'user_id'          : user_id['user_id'],
-        'total_payment'    : order_info['total_payment'],
-        'shipping_memo'    : order_info['shipping_memo'],
-        'orderer_name'     : order_info['orderer_name'],
-        'orderer_phone'    : order_info['orderer_phone'],
-        'orderer_email'    : order_info['orderer_email'],
-        'receiver_name'    : order_info['receiver_name'],
-        'receiver_phone'   : order_info['receiver_phone'],
-        'receiver_address' : order_info['receiver_address'],
-        }).lastrowid
-        
-        order_item_query =  """INSERT INTO order_item_info (
+
+        session.execute(
+            order_query,
+            {
+                "user_id": user_id["user_id"],
+                "total_payment": order_info["total_payment"],
+                "shipping_memo": order_info["shipping_memo"],
+                "orderer_name": order_info["orderer_name"],
+                "orderer_phone": order_info["orderer_phone"],
+                "orderer_email": order_info["orderer_email"],
+                "receiver_name": order_info["receiver_name"],
+                "receiver_phone": order_info["receiver_phone"],
+                "receiver_address": order_info["receiver_address"],
+            },
+        ).lastrowid
+
+        order_item_query = """INSERT INTO order_item_info (
                                     order_detail_id,
                                     order_id,
                                     order_status_id,
@@ -89,32 +78,19 @@ class OrderDao:
                                     "9999-12-31 23:59:59",
                                     0
                             )"""
-        
-        session.execute(order_item_query,       
-        {
-        'product_id'   : order_info['product_id'],
-        'price'        : order_info['price'],
-        'option_color' : order_info['option_color'],
-        'option_size'  : order_info['option_size'],
-        'units'        : order_info['units'],
-        })
-    
+
+        session.execute(
+            order_item_query,
+            {
+                "product_id": order_info["product_id"],
+                "price": order_info["price"],
+                "option_color": order_info["option_color"],
+                "option_size": order_info["option_size"],
+                "units": order_info["units"],
+            },
+        )
+
     def select_order_item(self, user_id, session):
-        """신규 order insert 로직
-                    
-        args:
-            session : connection 형성된 session 객체
-            user_id : 데코레이터 g객체 user_id
-        
-        return:
-            유저가 주문한 모든 order_item
-        
-        Authors:
-            kcs15987@gmail.com 권창식
-        
-        History:
-            2020-10-05 (권창식) : 초기 생성
-        """
         query = """SELECT DISTINCT
                         p_info.name,
                         p_info.main_img,
@@ -138,51 +114,21 @@ class OrderDao:
                     WHERE o.user_id = :user_id
                     AND o_item.is_deleted = 0
                 """
-        
-        row = session.execute(query,{'user_id'  : user_id['user_id']}).fetchall()
-    
+
+        row = session.execute(query, {"user_id": user_id["user_id"]}).fetchall()
+
         return row
-    
+
     def end_record(self, order_detail_id, now, session):
-        """order_item 선분 종료 로직
-                    
-        args:
-            session         : connection 형성된 session 객체
-            user_id         : 데코레이터 g객체 user_id
-            order_detail_id : 선분종료 할 order_detail_id
-            
-        Authors:
-            kcs15987@gmail.com 권창식
-        
-        History:
-            2020-10-05 (권창식) : 초기 생성
-        """
         query = """ UPDATE order_item_info
                     SET end_date = :now,
                         is_deleted = 1
                     WHERE order_detail_id = :order_detail_id
                     AND is_deleted = 0
                 """
-        session.execute(query,       
-        {
-            'order_detail_id' : order_detail_id['order_detail_id'],
-            'now'             : now
-        })
-    
+        session.execute(query, {"order_detail_id": order_detail_id["order_detail_id"], "now": now})
+
     def insert_cancel_reason(self, cancel_reason, now, session):
-        """order_item cancel 로직
-                    
-        args:
-            session       : connection 형성된 session 객체
-            now           : 현재시각
-            cancel_reason : 취소하려는 order_item의 order_detail_id
-            
-        Authors:
-            kcs15987@gmail.com 권창식
-        
-        History:
-            2020-10-05 (권창식) : 초기 생성
-        """
         query = """INSERT INTO order_item_info (
                         order_detail_id,
                         order_id,
@@ -217,27 +163,10 @@ class OrderDao:
                     AND order_detail_id = :order_detail_id
                     ORDER BY id DESC LIMIT 1
                 """
-                
-        session.execute(query,
-        {
-            'order_detail_id'  : cancel_reason['order_detail_id'],
-            'now'              : now
-        })
-        
+
+        session.execute(query, {"order_detail_id": cancel_reason["order_detail_id"], "now": now})
+
     def insert_refund_reason(self, refund_reason, now, session):
-        """order_item refund 로직
-                    
-        args:
-            session       : connection 형성된 session 객체
-            now           : 현재시각
-            refund_reason : 환불하려는 order_item의 order_detail_id, refund_reason_id
-            
-        Authors:
-            kcs15987@gmail.com 권창식
-        
-        History:
-            2020-10-05 (권창식) : 초기 생성
-        """
         query = """INSERT INTO order_item_info (
                         order_detail_id,
                         order_id,
@@ -272,27 +201,16 @@ class OrderDao:
                     AND order_detail_id = :order_detail_id
                     ORDER BY id DESC LIMIT 1
                 """
-        session.execute(query,
-        {
-            'refund_reason_id' : refund_reason['refund_reason_id'],
-            'order_detail_id'  : refund_reason['order_detail_id'],
-            'now'              : now
-        })
-        
+        session.execute(
+            query,
+            {
+                "refund_reason_id": refund_reason["refund_reason_id"],
+                "order_detail_id": refund_reason["order_detail_id"],
+                "now": now,
+            },
+        )
+
     def insert_refund_cancel(self, refund_cancel, now, session):
-        """order_item refund_cancel 로직
-                    
-        args:
-            session       : connection 형성된 session 객체
-            now           : 현재시각
-            refund_cancel : 환불취소하려는 order_item의 order_detail_id
-            
-        Authors:
-            kcs15987@gmail.com 권창식
-        
-        History:
-            2020-10-05 (권창식) : 초기 생성
-        """
         query = """INSERT INTO order_item_info (
                         order_detail_id,
                         order_id,
@@ -327,8 +245,5 @@ class OrderDao:
                     AND order_detail_id = :order_detail_id
                     ORDER BY id DESC LIMIT 1
                 """
-        session.execute(query,
-        {
-            'order_detail_id'  : refund_cancel['order_detail_id'],
-            'now'              : now
-        })
+        session.execute(query, {"order_detail_id": refund_cancel["order_detail_id"], "now": now})
+

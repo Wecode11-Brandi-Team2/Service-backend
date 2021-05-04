@@ -1,20 +1,5 @@
 class EventDao:
     def select_event_list(self, event_info, session):
-        """event_list select 로직
-             
-        args:
-            session    : connection 형성된 session 객체
-            event_info : limit, offset 정보
-        
-        return:
-            event_info에 해당하는 이벤트 list return
-        
-        Authors:
-            kcs15987@gmail.com 권창식
-        
-        History:
-            2020-10-12 (권창식) : 초기 생성
-        """ 
         query = """SELECT 
                         id,
                         banner_image
@@ -24,31 +9,19 @@ class EventDao:
                     LIMIT :limit
                     OFFSET :offset
                 """
-        
-        row = session.execute(query,{
-            'is_displayed' : event_info['is_displayed'],
-            'limit'        : event_info['limit'],
-            'offset'       : event_info['offset']
-        }).fetchall()
-        
+
+        row = session.execute(
+            query,
+            {
+                "is_displayed": event_info["is_displayed"],
+                "limit": event_info["limit"],
+                "offset": event_info["offset"],
+            },
+        ).fetchall()
+
         return row
-    
+
     def select_event_detail(self, event_info, session):
-        """event_detail select 로직
-             
-        args:
-            session    : connection 형성된 session 객체
-            event_info : event_id 정보
-        
-        return:
-            event_info에 해당하는 이벤트 정보 return
-        
-        Authors:
-            kcs15987@gmail.com 권창식
-        
-        History:
-            2020-10-12 (권창식) : 초기 생성
-        """       
         query = """ SELECT
                         simple_description,
                         detail_description,
@@ -58,27 +31,12 @@ class EventDao:
                     WHERE is_deleted = 0
                     AND id = :id
                 """
-        
-        row = session.execute(query,{'id' : event_info['id']}).fetchall()
-         
-        return row 
-    
+
+        row = session.execute(query, {"id": event_info["id"]}).fetchall()
+
+        return row
+
     def check_buttons(self, event_info, session):
-        """event button check 로직
-             
-        args:
-            session    : connection 형성된 session 객체
-            event_info : event_id 정보
-        
-        return:
-            event_info에 해당하는 모든 버튼 return
-        
-        Authors:
-            kcs15987@gmail.com 권창식
-        
-        History:
-            2020-10-12 (권창식) : 초기 생성
-        """      
         query = """ SELECT DISTINCT
                         e_bt.id AS button_id
                     FROM events AS e
@@ -87,27 +45,12 @@ class EventDao:
                     WHERE e.is_deleted = 0
                     AND e.id = :id
                 """
-        
-        row = session.execute(query,{'id' : event_info['id']}).fetchall()
-         
-        return row     
-    
+
+        row = session.execute(query, {"id": event_info["id"]}).fetchall()
+
+        return row
+
     def select_event_products(self, event_info, session):
-        """event_products select 로직
-                    
-        args:
-            session    : connection 형성된 session 객체
-            event_info : event_id, button_id, limit, offset 정보
-        
-        return:
-            event_info에 해당하는 모든 상품 return
-        
-        Authors:
-            kcs15987@gmail.com 권창식
-        
-        History:
-            2020-10-12 (권창식) : 초기 생성
-        """        
         query = """ SELECT 
                         p_info.name,
                         p_info.main_img AS image,
@@ -122,17 +65,20 @@ class EventDao:
                     WHERE e.is_deleted = 0
                     AND e.id = :id
                 """
-                
-        if event_info['button_id'] != 0:
+
+        if event_info["button_id"] != 0:
             query += " AND e_pd.button_id = :button_id"
-         
+
         query += " LIMIT :limit OFFSET :offset"
 
-        row = session.execute(query,{
-            'id'        : event_info['id'],
-            'button_id' : event_info['button_id'],
-            'limit'     : event_info['limit'],
-            'offset'    : event_info['offset']
-        }).fetchall()
-        
+        row = session.execute(
+            query,
+            {
+                "id": event_info["id"],
+                "button_id": event_info["button_id"],
+                "limit": event_info["limit"],
+                "offset": event_info["offset"],
+            },
+        ).fetchall()
+
         return row
