@@ -28,22 +28,6 @@ def create_order_endpoints(order_service, Session):
         Param("units", JSON, int, required=True),
     )
     def insert_orders(*args, **kwargs):
-        """신규 order insert endpoint 로직
-                    
-        args:
-            session    : connection 형성된 session 객체
-            user_id    : 데코레이터 g객체 user_id
-            order_info : order, order_item 정보
-            
-        return:
-            성공메세지 반환
-        
-        Authors:
-            kcs15987@gmail.com 권창식
-        
-        History:
-            2020-10-05 (권창식) : 초기 생성
-        """
         session = Session()
         try:
             order_info = request.json
